@@ -1,0 +1,4 @@
+*.log
+*.err
+.next/
+node_modules/
