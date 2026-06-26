@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { productsApi } from '@/lib/api';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/brand/logo';
 import { ProductCard } from '@/components/product/product-card';
 import { SmartSearch } from '@/components/search/smart-search';
@@ -13,9 +14,13 @@ import { useCartStore } from '@/store/cartStore';
 import type { Product } from '@/types';
 import { wishlistApi } from '@/lib/api';
 import { ProductComparison } from '@/components/product/product-comparison';
+import { Modal } from '@/components/ui/modal';
+import { MatchScore } from '@/components/product/match-score';
+import { Heart, ShoppingCart, Eye, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ProductsPage() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('popularity');
   const [page, setPage] = useState(1);
@@ -23,6 +28,7 @@ export default function ProductsPage() {
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [showCompare, setShowCompare] = useState(false);
   const { addItem } = useCartStore();
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['products', search, sortBy, page],
@@ -136,6 +142,7 @@ export default function ProductsPage() {
                 onAddToCart={handleAddToCart}
                 onWishlist={handleWishlist}
                 onCompare={handleCompare}
+                onQuickView={(id) => setQuickViewProduct(allProducts.find(p => p.id === id) || null)}
                 isInCompare={compareIds.includes(product.id)}
                 showMatchScore={true}
                 showSocialProof={true}
@@ -183,6 +190,55 @@ export default function ProductsPage() {
             </motion.div>
           </motion.div>
         )}
+
+        {/* Quick View Modal */}
+        <Modal isOpen={!!quickViewProduct} onClose={() => setQuickViewProduct(null)} size="lg" title={quickViewProduct?.name}>
+          {quickViewProduct && (
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="relative aspect-square rounded-xl overflow-hidden bg-white/[0.03]">
+                <img src={quickViewProduct.thumbnail_url || 'https://images.unsplash.com/photo-1590658268037-6bf12f032f55?w=600&h=600&fit=crop'}
+                  alt={quickViewProduct.name} className="w-full h-full object-cover"
+                  onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1590658268037-6bf12f032f55?w=600&h=600&fit=crop'; }}
+                />
+                {quickViewProduct.ai_match_score && (
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-purple-500/80 text-[10px] font-bold backdrop-blur-sm">
+                    {Math.round(quickViewProduct.ai_match_score * 100)}% Match
+                  </div>
+                )}
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-[10px] text-[--muted] uppercase tracking-wider">{quickViewProduct.brand || 'Premium'}</p>
+                  <h2 className="text-lg font-bold mt-1">{quickViewProduct.name}</h2>
+                  <p className="text-[10px] text-[--muted] mt-1">{quickViewProduct.short_description || quickViewProduct.description || 'Premium quality product with exceptional features.'}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xl font-bold text-[--secondary]">₹{(quickViewProduct.price || 0).toLocaleString('en-US')}</span>
+                  {quickViewProduct.original_price && (
+                    <span className="text-xs text-[--muted] line-through">₹{quickViewProduct.original_price.toLocaleString('en-US')}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="flex items-center gap-1 text-amber-400"><Star size={12} fill="currentColor" /> {quickViewProduct.average_rating || 4.0}</div>
+                  <span className="text-[--muted]">({quickViewProduct.total_ratings || 0} reviews)</span>
+                  <span className="text-[--muted]">|</span>
+                  <span className="text-[--muted]">{quickViewProduct.total_purchases || 0} sold</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {quickViewProduct.tags?.split(',').map((tag: string, i: number) => (
+                    <span key={i} className="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-[--muted]">{tag.trim()}</span>
+                  ))}
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button variant="primary" size="sm" onClick={() => { addItem(quickViewProduct.id, 1); toast.success('Added to cart!'); setQuickViewProduct(null); }}
+                    className="flex-1 gap-2"><ShoppingCart size={14} /> Add to Cart</Button>
+                  <Button variant="secondary" size="sm" onClick={() => { setQuickViewProduct(null); router.push(`/products/${quickViewProduct.id}`); }}
+                    className="gap-2"><Eye size={14} /> View Details</Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal>
 
         {/* Pagination */}
         {(data?.data?.total_pages || 1) > 1 && (

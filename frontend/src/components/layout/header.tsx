@@ -8,8 +8,9 @@ import { useCartStore } from '@/store/cartStore';
 import { Logo } from '@/components/brand/logo';
 import { InfinityLoopIcon } from '@/components/ui/InfinityLoopIcon';
 import { VoiceSearch } from '@/components/ui/voice-search';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 import {
-  SearchIcon, CartIcon, UserIcon, BellIcon, SunIcon,
+  SearchIcon, CartIcon, UserIcon, BellIcon,
   ArrowRightIcon
 } from '@/components/ui/emoji-icons';
 
@@ -51,9 +52,7 @@ export function Header() {
         </form>
         <div className="flex items-center gap-1 sm:gap-2">
           <VoiceSearch onResult={handleVoiceResult} />
-          <button className="btn-ghost p-2" aria-label="Toggle theme">
-            <SunIcon size={16} />
-          </button>
+          <ThemeToggle />
           <Link href="/cart" className="btn-ghost relative p-2" aria-label="Cart">
             <CartIcon size={16} />
             {cartCount > 0 && (
