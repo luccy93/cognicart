@@ -190,8 +190,8 @@ export default function FAQPage() {
           </div>
           <div className="flex gap-6">
             <Link href="/about">About</Link>
-            <span>Privacy</span>
-            <span>Terms</span>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
             <Link href="/contact">Contact</Link>
           </div>
           <div>&copy; {new Date().getFullYear()} CogniCart. All rights reserved.</div>

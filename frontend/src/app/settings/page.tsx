@@ -89,6 +89,7 @@ export default function SettingsPage() {
 
   // Appearance
   const [theme, setTheme] = useState('dark');
+  const [fontSize, setFontSize] = useState('medium');
 
   const handleSave = () => {
     setSaving(true);
@@ -218,7 +219,7 @@ export default function SettingsPage() {
               <h3 className="text-sm font-semibold mb-3">Font Size</h3>
               <div className="flex gap-2">
                 {['Small', 'Medium', 'Large'].map((size) => (
-                  <button key={size} className="px-4 py-2 glass rounded-lg text-xs hover:bg-white/5">{size}</button>
+                  <button key={size} onClick={() => setFontSize(size.toLowerCase() as any)} className={`px-4 py-2 glass rounded-lg text-xs transition-all ${fontSize === size.toLowerCase() ? 'ring-2 ring-[--primary] bg-[--primary]/10' : 'hover:bg-white/5'}`}>{size}</button>
                 ))}
               </div>
             </div>

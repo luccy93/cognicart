@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { productsApi } from '@/lib/api';
@@ -11,7 +12,7 @@ import { useCartStore } from '@/store/cartStore';
 import toast from 'react-hot-toast';
 import type { Product } from '@/types';
 
-export default function ComparePage() {
+function CompareContent() {
   const searchParams = useSearchParams();
   const ids = searchParams.get('ids')?.split(',').filter(Boolean) || [];
   const { addItem } = useCartStore();
@@ -89,5 +90,13 @@ export default function ComparePage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p className="text-[--muted]">Loading...</p></div>}>
+      <CompareContent />
+    </Suspense>
   );
 }

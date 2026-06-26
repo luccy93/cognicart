@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { TestTube, Plus, Play, Square, BarChart3 } from 'lucide-react';
 import { featuresApi } from '@/lib/api';
 
@@ -30,7 +31,7 @@ export default function ABTestsPage() {
       setLoading(true);
       const { data } = await featuresApi.getABTests();
       setTests(data as ABTest[]);
-    } catch { /* admin only */ }
+    } catch { toast.error('Failed to load A/B tests'); }
     setLoading(false);
   }
 

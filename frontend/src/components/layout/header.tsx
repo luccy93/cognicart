@@ -1,31 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { Logo } from '@/components/brand/logo';
 import { InfinityLoopIcon } from '@/components/ui/InfinityLoopIcon';
+import { VoiceSearch } from '@/components/ui/voice-search';
 import {
   SearchIcon, CartIcon, UserIcon, BellIcon, SunIcon,
   ArrowRightIcon
 } from '@/components/ui/emoji-icons';
 
-function MicIcon({ className }: { className?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-      <line x1="12" y1="19" x2="12" y2="23" />
-      <line x1="8" y1="23" x2="16" y2="23" />
-    </svg>
-  );
-}
-
 export function Header() {
   const { user, isAuthenticated } = useAuthStore();
   const cartCount = useCartStore((s) => s.itemCount);
   const [notifCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+
+  const handleVoiceResult = useCallback((text: string) => {
+    setSearchQuery(text);
+    router.push(`/search?q=${encodeURIComponent(text)}`);
+  }, [router]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   return (
     <nav className="nav-blur z-50 sticky top-0">
@@ -33,19 +38,19 @@ export function Header() {
         <Link href="/" className="shrink-0">
           <Logo size="sm" showTagline={false} />
         </Link>
-        <div className="hidden md:flex items-center relative flex-1 max-w-lg">
+        <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center relative flex-1 max-w-lg">
           <SearchIcon size={16} className="absolute left-3.5 text-[--muted] pointer-events-none" />
           <input
             type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search products, brands, categories..."
             className="glass-input pl-10 pr-12 text-sm"
           />
           <span className="absolute right-3 glass-pill px-1.5 py-0.5 text-[10px] font-mono text-[--muted] leading-none">⌘K</span>
-        </div>
+        </form>
         <div className="flex items-center gap-1 sm:gap-2">
-          <button className="btn-ghost p-2 hidden sm:flex" aria-label="Voice search">
-            <MicIcon />
-          </button>
+          <VoiceSearch onResult={handleVoiceResult} />
           <button className="btn-ghost p-2" aria-label="Toggle theme">
             <SunIcon size={16} />
           </button>
