@@ -14,7 +14,7 @@ from app.core.rate_limit import rate_limit_middleware
 from app.api import auth, products, recommendations, orders, cart, wishlist, analytics, admin, coupons, monitoring, features
 from app.api import marketplace, inventory, checkout, payments, order_lifecycle, delivery, reviews_enterprise
 from app.api import flash_sales, price_tracking, loyalty, prime, notifications_enterprise, community, support, enterprise_admin
-from app.api import ai_features
+from app.api import ai_features, dashboard
 from app.api import payments_gateway
 from app.api import chat
 
@@ -102,6 +102,7 @@ app.include_router(enterprise_admin.router)
 app.include_router(ai_features.router)
 app.include_router(payments_gateway.router)
 app.include_router(chat.router)
+app.include_router(dashboard.router)
 
 
 @app.websocket("/api/ws")

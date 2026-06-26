@@ -382,3 +382,12 @@ export const aiApi = {
   createARSession: (data: Record<string, unknown>) => api.post('/ai/ar-sessions', data),
   updateARSession: (id: string, data: Record<string, unknown>) => api.put(`/ai/ar-sessions/${id}`, data),
 };
+
+export const dashboardApi = {
+  getSummary: () => api.get('/dashboard/summary'),
+  getRecommendations: (limit = 8) => api.get('/dashboard/recommendations', { params: { limit } }),
+  getOrders: (limit = 5) => api.get('/dashboard/orders', { params: { limit } }),
+  getNotifications: (limit = 10) => api.get('/dashboard/notifications', { params: { limit } }),
+  getLoyalty: () => api.get('/dashboard/loyalty'),
+  getAnalytics: (days = 30) => api.get('/dashboard/analytics', { params: { days } }),
+};
