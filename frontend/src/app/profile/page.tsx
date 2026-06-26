@@ -67,6 +67,18 @@ const sampleXP: XPLevel = {
   level_title: 'Bronze Explorer',
 };
 
+type ProfileTab = 'profile' | 'addresses' | 'payments' | 'notifications' | 'privacy';
+
+const sampleAddresses = [
+  { id: 'a1', label: 'Home', street: '123 Main St, Apt 4B', city: 'New York', state: 'NY', zip: '10001', country: 'United States', isDefault: true },
+  { id: 'a2', label: 'Work', street: '456 AI Innovation Dr, Suite 200', city: 'San Francisco', state: 'CA', zip: '94105', country: 'United States', isDefault: false },
+];
+
+const samplePaymentMethods = [
+  { id: 'p1', brand: 'Visa', last4: '4242', name: 'Alex Johnson', expiry: '12/28', isDefault: true, color: 'from-blue-600 to-blue-800' },
+  { id: 'p2', brand: 'Mastercard', last4: '5678', name: 'Alex Johnson', expiry: '09/27', isDefault: false, color: 'from-orange-500 to-red-500' },
+];
+
 export default function ProfilePage() {
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
@@ -74,6 +86,7 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [form, setForm] = useState(sampleProfile);
+  const [activeTab, setActiveTab] = useState<ProfileTab>('profile');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -197,185 +210,326 @@ export default function ProfilePage() {
           <p className="text-xs text-[--muted] mt-1">Manage your personal information and view AI insights</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Profile Form */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-6">
-            <div className="glass rounded-xl p-6 space-y-5">
-              <div>
-                <label className="block text-xs font-medium text-[--muted] mb-1.5">Full Name</label>
-                <input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} className="input-glass" placeholder="Enter your full name" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-[--muted] mb-1.5">Email</label>
-                <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="input-glass" placeholder="Enter your email" type="email" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-[--muted] mb-1.5">Phone</label>
-                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input-glass" placeholder="Enter your phone number" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-[--muted] mb-1.5">Date of Birth</label>
-                <input value={form.dob} onChange={(e) => setForm({ ...form, dob: e.target.value })} className="input-glass" type="date" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-[--muted] mb-1.5">Gender</label>
-                <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="input-glass">
-                  {genderOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value} className="bg-[--surface]">{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-[--muted] mb-1.5">Bio</label>
-                <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} className="input-glass resize-none h-24" placeholder="Tell us about yourself..." />
-              </div>
-              <div className="flex items-center gap-3 pt-2">
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSave} disabled={saving} className="btn-primary flex items-center gap-2">
-                  {saving ? (
-                    <><svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Saving...</>
-                  ) : saved ? (
-                    <><CheckCircleIcon size={14} />Saved Successfully</>
-                  ) : 'Save Changes'}
-                </motion.button>
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-ghost">Cancel</motion.button>
-              </div>
-            </div>
-
-            {/* XP Level Card */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-              className="glass rounded-xl p-5 relative overflow-hidden hover-glow-primary"
+        {/* Tab Navigation */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2 overflow-x-auto pb-2 mb-6 justify-center">
+          {([
+            { id: 'profile' as const, label: 'Profile' },
+            { id: 'addresses' as const, label: 'Addresses' },
+            { id: 'payments' as const, label: 'Payments' },
+            { id: 'notifications' as const, label: 'Notifications' },
+            { id: 'privacy' as const, label: 'Privacy' },
+          ]).map(tab => (
+            <button
+              key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'bg-gradient-to-r from-[--primary] to-[--secondary] text-black shadow-lg shadow-[--primary]/20'
+                  : 'glass text-[--muted] hover:text-white'
+              }`}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[--accent]/10 via-transparent to-transparent" />
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[--accent] to-amber-500 flex items-center justify-center text-black">
-                    <TrophyIcon size={18} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold">Level {displayXP.level} — {displayXP.level_title}</h3>
-                    <p className="text-[10px] text-[--muted]">Total XP: {displayXP.total_xp_earned.toLocaleString('en-US')}</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-[10px] text-[--muted] mb-1">
-                  <span>{displayXP.current_xp.toLocaleString('en-US')} XP</span>
-                  <span>{displayXP.xp_to_next_level.toLocaleString('en-US')} XP to Level {displayXP.level + 1}</span>
-                </div>
-                <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (displayXP.current_xp / (displayXP.current_xp + displayXP.xp_to_next_level)) * 100)}%` }}
-                    className="h-full bg-gradient-to-r from-[--accent] via-amber-400 to-yellow-300 rounded-full" transition={{ duration: 1.5, ease: 'easeOut' }} />
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
+              {tab.label}
+            </button>
+          ))}
+        </motion.div>
 
-          {/* Right Column - AI Insights & Achievements */}
-          <div className="space-y-6">
-            {/* Shopping DNA Summary */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-              className="glass rounded-xl p-5 relative overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-[--primary]/10 via-purple-500/5 to-[--secondary]/10" />
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[--primary] to-[--secondary] flex items-center justify-center text-black">
-                    <InfinityLoopIcon size={16} />
+        {/* Tab Content */}
+        <AnimatePresence mode="wait">
+          {activeTab === 'profile' && (
+            <motion.div key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Profile Form */}
+              <div className="space-y-6">
+                <div className="glass rounded-xl p-6 space-y-5">
+                  <div>
+                    <label className="block text-xs font-medium text-[--muted] mb-1.5">Full Name</label>
+                    <input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} className="input-glass" placeholder="Enter your full name" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold">Shopping DNA</h3>
-                    <p className="text-[10px] text-[--muted]">Your AI shopping profile</p>
+                    <label className="block text-xs font-medium text-[--muted] mb-1.5">Email</label>
+                    <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="input-glass" placeholder="Enter your email" type="email" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[--muted] mb-1.5">Phone</label>
+                    <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input-glass" placeholder="Enter your phone number" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[--muted] mb-1.5">Date of Birth</label>
+                    <input value={form.dob} onChange={(e) => setForm({ ...form, dob: e.target.value })} className="input-glass" type="date" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[--muted] mb-1.5">Gender</label>
+                    <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="input-glass">
+                      {genderOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value} className="bg-[--surface]">{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[--muted] mb-1.5">Bio</label>
+                    <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} className="input-glass resize-none h-24" placeholder="Tell us about yourself..." />
+                  </div>
+                  <div className="flex items-center gap-3 pt-2">
+                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSave} disabled={saving} className="btn-primary flex items-center gap-2">
+                      {saving ? (
+                        <><svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Saving...</>
+                      ) : saved ? (
+                        <><CheckCircleIcon size={14} />Saved Successfully</>
+                      ) : 'Save Changes'}
+                    </motion.button>
+                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-ghost">Cancel</motion.button>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-[10px] text-[--muted]">Persona</p>
-                    <p className="text-xs font-semibold flex items-center gap-1">
-                      <InfinityLoopIcon size={12} />
-                      {displayDNA.persona_label}
-                    </p>
+
+                {/* XP Level Card */}
+                <motion.div className="glass rounded-xl p-5 relative overflow-hidden hover-glow-primary">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[--accent]/10 via-transparent to-transparent" />
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[--accent] to-amber-500 flex items-center justify-center text-black">
+                        <TrophyIcon size={18} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold">Level {displayXP.level} — {displayXP.level_title}</h3>
+                        <p className="text-[10px] text-[--muted]">Total XP: {displayXP.total_xp_earned.toLocaleString('en-US')}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-[--muted] mb-1">
+                      <span>{displayXP.current_xp.toLocaleString('en-US')} XP</span>
+                      <span>{displayXP.xp_to_next_level.toLocaleString('en-US')} XP to Level {displayXP.level + 1}</span>
+                    </div>
+                    <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (displayXP.current_xp / (displayXP.current_xp + displayXP.xp_to_next_level)) * 100)}%` }}
+                        className="h-full bg-gradient-to-r from-[--accent] via-amber-400 to-yellow-300 rounded-full" transition={{ duration: 1.5, ease: 'easeOut' }} />
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-[--muted]">Pattern</p>
-                    <p className="text-xs font-semibold capitalize">{displayDNA.shopping_pattern?.replace(/_/g, ' ')}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-[--muted]">Price Sensitivity</p>
-                    <p className="text-xs font-semibold capitalize">{displayDNA.price_sensitivity}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-[--muted]">Brand Loyalty</p>
-                    <p className="text-xs font-semibold">{Math.round((displayDNA.brand_loyalty_score || 0) * 100)}%</p>
+                </motion.div>
+              </div>
+
+              {/* Right Column - AI Insights & Achievements */}
+              <div className="space-y-6">
+                {/* Shopping DNA Summary */}
+                <div className="glass rounded-xl p-5 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[--primary]/10 via-purple-500/5 to-[--secondary]/10" />
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[--primary] to-[--secondary] flex items-center justify-center text-black">
+                        <InfinityLoopIcon size={16} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold">Shopping DNA</h3>
+                        <p className="text-[10px] text-[--muted]">Your AI shopping profile</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-[10px] text-[--muted]">Persona</p>
+                        <p className="text-xs font-semibold flex items-center gap-1">
+                          <InfinityLoopIcon size={12} />
+                          {displayDNA.persona_label}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-[--muted]">Pattern</p>
+                        <p className="text-xs font-semibold capitalize">{displayDNA.shopping_pattern?.replace(/_/g, ' ')}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-[--muted]">Price Sensitivity</p>
+                        <p className="text-xs font-semibold capitalize">{displayDNA.price_sensitivity}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-[--muted]">Brand Loyalty</p>
+                        <p className="text-xs font-semibold">{Math.round((displayDNA.brand_loyalty_score || 0) * 100)}%</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-white/5">
+                      <p className="text-[10px] text-[--muted] mb-1.5">Top Brands</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(displayDNA.preferred_brands || []).map((brand: string, i: number) => (
+                          <span key={i} className="text-[10px] px-2 py-1 rounded-full glass-pill text-white border border-white/10">{brand}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-[10px] text-[--muted] mb-1.5">AI Confidence</p>
+                      <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${Math.round((displayDNA.confidence || 0) * 100)}%` }}
+                          className="h-full bg-gradient-to-r from-[--primary] to-[--secondary] rounded-full" transition={{ duration: 1 }} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-white/5">
-                  <p className="text-[10px] text-[--muted] mb-1.5">Top Brands</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(displayDNA.preferred_brands || []).map((brand: string, i: number) => (
-                      <span key={i} className="text-[10px] px-2 py-1 rounded-full glass-pill text-white border border-white/10">{brand}</span>
+
+                {/* Achievements Section */}
+                <div className="glass rounded-xl p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <MedalGoldIcon size={16} className="text-[--accent]" />
+                      <h3 className="text-sm font-semibold">Achievements</h3>
+                    </div>
+                    <span className="text-[10px] text-[--muted]">{earnedAchievements.length}/{displayAchievements.length} earned</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {earnedAchievements.map((a: Achievement) => (
+                      <motion.div key={a.id} whileHover={{ scale: 1.1 }} className="relative group">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[--accent]/20 to-amber-500/20 border border-[--accent]/30 flex items-center justify-center text-sm cursor-help">
+                          {a.icon || <StarIcon size={14} className="text-[--accent]" />}
+                        </div>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded-lg glass-strong text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                          <p className="font-semibold">{a.title}</p>
+                          <p className="text-[--muted]">+{a.xp_reward} XP</p>
+                        </div>
+                      </motion.div>
                     ))}
                   </div>
-                </div>
-                <div className="mt-2">
-                  <p className="text-[10px] text-[--muted] mb-1.5">AI Confidence</p>
-                  <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${Math.round((displayDNA.confidence || 0) * 100)}%` }}
-                      className="h-full bg-gradient-to-r from-[--primary] to-[--secondary] rounded-full" transition={{ duration: 1 }} />
+                  <div className="space-y-3">
+                    {inProgressAchievements.slice(0, 4).map((a: Achievement) => {
+                      const progress = a.progress_target > 0 ? Math.min(100, (a.progress_current / a.progress_target) * 100) : 0;
+                      return (
+                        <div key={a.id}>
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm">{a.icon || <DiamondIcon size={10} />}</span>
+                              <span className="text-xs font-medium">{a.title}</span>
+                            </div>
+                            <span className="text-[10px] text-[--muted]">{a.progress_current}/{a.progress_target}</span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }}
+                              className="h-full rounded-full bg-gradient-to-r from-[--primary] to-[--secondary]" transition={{ duration: 1 }} />
+                          </div>
+                          <p className="text-[9px] text-[--muted] mt-0.5">+{a.xp_reward} XP &middot; {a.description}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
             </motion.div>
+          )}
 
-            {/* Achievements Section */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-              className="glass rounded-xl p-5"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <MedalGoldIcon size={16} className="text-[--accent]" />
-                  <h3 className="text-sm font-semibold">Achievements</h3>
-                </div>
-                <span className="text-[10px] text-[--muted]">{earnedAchievements.length}/{displayAchievements.length} earned</span>
+          {activeTab === 'addresses' && (
+            <motion.div key="addresses" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-2xl mx-auto space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Saved Addresses</h2>
+                <button className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                  Add Address
+                </button>
               </div>
+              {sampleAddresses.map((addr, i) => (
+                <div key={addr.id} className="glass rounded-xl p-5 card-3d">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${addr.isDefault ? 'bg-[--primary]/15 text-[--primary]' : 'glass'}`}>
+                        {addr.label.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-semibold">{addr.label}</h3>
+                          {addr.isDefault && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[--primary]/15 text-[--primary]">Default</span>}
+                        </div>
+                        <p className="text-xs text-[--muted] mt-0.5">{addr.street}</p>
+                        <p className="text-xs text-[--muted]">{addr.city}, {addr.state} {addr.zip}</p>
+                        <p className="text-xs text-[--muted]">{addr.country}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button className="p-1.5 glass rounded-lg text-[10px] text-[--muted] hover:text-white">Edit</button>
+                      <button className="p-1.5 glass rounded-lg text-[10px] text-red-400 hover:text-red-300">Delete</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          )}
 
-              {/* Earned Badges */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {earnedAchievements.map((a: Achievement) => (
-                  <motion.div key={a.id} whileHover={{ scale: 1.1 }} className="relative group">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[--accent]/20 to-amber-500/20 border border-[--accent]/30 flex items-center justify-center text-sm cursor-help">
-                      {a.icon || <StarIcon size={14} className="text-[--accent]" />}
+          {activeTab === 'payments' && (
+            <motion.div key="payments" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-2xl mx-auto space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Saved Payment Methods</h2>
+                <button className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                  Add Card
+                </button>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {samplePaymentMethods.map((card, i) => (
+                  <div key={card.id} className={`rounded-xl p-5 bg-gradient-to-br ${card.color} relative overflow-hidden card-3d`}>
+                    <div className="absolute top-3 right-3">
+                      {card.isDefault && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/20 text-white">Default</span>}
                     </div>
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded-lg glass-strong text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                      <p className="font-semibold">{a.title}</p>
-                      <p className="text-[--muted]">+{a.xp_reward} XP</p>
+                    <div className="text-white/80 text-xs font-medium mb-6">{card.brand}</div>
+                    <div className="text-white text-lg font-mono tracking-wider mb-3">**** **** **** {card.last4}</div>
+                    <div className="flex justify-between items-center text-white/70 text-xs">
+                      <span>{card.name}</span>
+                      <span>{card.expiry}</span>
                     </div>
-                  </motion.div>
+                    <div className="mt-3 pt-3 border-t border-white/10 flex justify-end gap-2">
+                      <button className="text-[10px] text-white/60 hover:text-white">Edit</button>
+                      <button className="text-[10px] text-white/60 hover:text-red-300">Remove</button>
+                    </div>
+                  </div>
                 ))}
               </div>
-
-              {/* In-Progress Achievements */}
-              <div className="space-y-3">
-                {inProgressAchievements.slice(0, 4).map((a: Achievement) => {
-                  const progress = a.progress_target > 0 ? Math.min(100, (a.progress_current / a.progress_target) * 100) : 0;
-                  return (
-                    <div key={a.id}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm">{a.icon || <DiamondIcon size={10} />}</span>
-                          <span className="text-xs font-medium">{a.title}</span>
-                        </div>
-                        <span className="text-[10px] text-[--muted]">{a.progress_current}/{a.progress_target}</span>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }}
-                          className="h-full rounded-full bg-gradient-to-r from-[--primary] to-[--secondary]" transition={{ duration: 1 }} />
-                      </div>
-                      <p className="text-[9px] text-[--muted] mt-0.5">+{a.xp_reward} XP &middot; {a.description}</p>
-                    </div>
-                  );
-                })}
+              <div className="glass rounded-xl p-5 text-center">
+                <p className="text-xs text-[--muted]">Your payment information is stored securely and PCI-DSS compliant.</p>
               </div>
             </motion.div>
-          </div>
-        </div>
+          )}
+
+          {activeTab === 'notifications' && (
+            <motion.div key="notifications" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-2xl mx-auto space-y-4">
+              <h2 className="text-lg font-semibold">Notification Settings</h2>
+              {[
+                { id: 'n1', label: 'Order Updates', desc: 'Receive updates about your order status and delivery' },
+                { id: 'n2', label: 'Price Alerts', desc: 'Get notified when items in your wishlist go on sale' },
+                { id: 'n3', label: 'Recommendations', desc: 'Weekly personalized product recommendations' },
+                { id: 'n4', label: 'Promotions & Deals', desc: 'Exclusive offers, discounts, and flash sale alerts' },
+                { id: 'n5', label: 'Reviews & Community', desc: 'Notifications about reviews, ratings, and community activity' },
+                { id: 'n6', label: 'Security Alerts', desc: 'Login notifications and account security updates' },
+              ].map((notif, i) => (
+                <div key={notif.id} className="glass rounded-xl p-4 card-3d flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium">{notif.label}</h3>
+                    <p className="text-xs text-[--muted] mt-0.5">{notif.desc}</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" defaultChecked={i < 4} className="sr-only peer" />
+                    <div className="w-9 h-5 bg-white/10 rounded-full peer peer-checked:bg-[--primary] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4" />
+                  </label>
+                </div>
+              ))}
+              <button className="btn-primary text-sm px-6 py-2.5">Save Preferences</button>
+            </motion.div>
+          )}
+
+          {activeTab === 'privacy' && (
+            <motion.div key="privacy" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-2xl mx-auto space-y-4">
+              <h2 className="text-lg font-semibold">Privacy Settings</h2>
+              {[
+                { id: 'p1', label: 'AI Personalization', desc: 'Allow AI to personalize recommendations based on your behavior', default: true },
+                { id: 'p2', label: 'Share Usage Data', desc: 'Help improve our AI by sharing anonymized browsing data', default: true },
+                { id: 'p3', label: 'Profile Visibility', desc: 'Make your profile visible to other users in the community', default: false },
+                { id: 'p4', label: 'Email Marketing', desc: 'Receive marketing emails about new features and offers', default: false },
+              ].map((setting, i) => (
+                <div key={setting.id} className="glass rounded-xl p-4 card-3d flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium">{setting.label}</h3>
+                    <p className="text-xs text-[--muted] mt-0.5">{setting.desc}</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" defaultChecked={setting.default} className="sr-only peer" />
+                    <div className="w-9 h-5 bg-white/10 rounded-full peer peer-checked:bg-[--secondary] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4" />
+                  </label>
+                </div>
+              ))}
+              <div className="glass rounded-xl p-5 mt-6">
+                <h3 className="text-sm font-semibold text-red-400 mb-2">Danger Zone</h3>
+                <p className="text-xs text-[--muted] mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                <button className="btn-ghost text-xs px-4 py-2 text-red-400 border-red-400/30 hover:bg-red-500/10">Delete Account</button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );
