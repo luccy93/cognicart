@@ -544,6 +544,8 @@ Area charts
 
 Category charts
 
+Pie charts
+
 
 
 ---
